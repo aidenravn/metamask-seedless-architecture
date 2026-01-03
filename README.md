@@ -1,3 +1,11 @@
+## 🤝 Contributing
+
+We welcome contributions from the community!  
+
+Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on how to safely contribute, test, and submit code.  
+
+**⚠️ Reminder:** This project is experimental, not production-ready, and not to be used with real funds. Always follow security best practices when contributing.
+
 🌐 Seedless Wallet + Reputation + Migration – Flow Diagram (English)
 
 [User Device (MPC Key)]
