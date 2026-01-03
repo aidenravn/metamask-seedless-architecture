@@ -21,7 +21,7 @@ By contributing, you acknowledge that you assume responsibility for your code an
 
 1. Fork & Clone
 
-git clone https://github.com/your-username/seedless-wallet.git
+git clone https://github.com/aidenravn/seedless-wallet.git
 cd seedless-wallet
 
 	•	Make sure you are working on the latest branch.
