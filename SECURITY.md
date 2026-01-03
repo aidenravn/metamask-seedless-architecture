@@ -1,7 +1,3 @@
-Tabii! İşte tam koruma güvenlik checklist’i İngilizceye çevrilmiş hâli:
-
-⸻
-
 🌐 Seedless Wallet – Full Security Architecture Checklist (English)
 
 ⸻
