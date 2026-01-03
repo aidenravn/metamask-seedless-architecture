@@ -88,7 +88,7 @@ Seedless Wallet is a **human-first Web3 self-custody solution** that eliminates 
 🚀 Getting Started
 
 # Clone the repo
-git clone https://github.com/yourusername/seedless-wallet.git
+git clone https://github.com/aidenravn/seedless-wallet.git
 
 # Install dependencies
 cd seedless-wallet
