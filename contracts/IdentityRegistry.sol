@@ -14,6 +14,8 @@ contract IdentityRegistry {
         address primaryAccount;          // Seedless smart account
         address[] linkedAddresses;       // Eski cüzdanlar
         uint256 reputation;              // Reputasyon puanı
+        uint256 timeLockUntil;           // Migration / transfer için zaman kilidi
+        mapping(address => bool) guardians; // Guardian ağı
     }
 
     mapping(address => Identity) public identities;
@@ -23,14 +25,24 @@ contract IdentityRegistry {
     event ReputationMigrated(address indexed oldAddress, address indexed newAccount, uint256 amount);
     event ERC20Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 amount);
     event ERC721Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 tokenId);
+    event GuardianApproved(address indexed account, address indexed guardian);
+    event TimeLockSet(address indexed account, uint256 unlockTime);
+
+    modifier onlyGuardian(address account) {
+        require(identities[account].guardians[msg.sender], "Not a guardian");
+        _;
+    }
+
+    modifier timeLockPassed(address account) {
+        require(block.timestamp >= identities[account].timeLockUntil, "Time-lock active");
+        _;
+    }
 
     // Link eski cüzdan ile yeni smart account
     function linkOldAddress(address oldAddress, bytes calldata signature) external {
-        // Eski cüzdan imzasını doğrula
         bytes32 message = keccak256(abi.encodePacked("Link to ", msg.sender));
         require(recoverSigner(message, signature) == oldAddress, "Invalid signature");
 
-        // Identity kaydı
         if(addressToIdentity[oldAddress] == address(0)) {
             identities[msg.sender].primaryAccount = msg.sender;
             identities[msg.sender].linkedAddresses.push(oldAddress);
@@ -40,8 +52,20 @@ contract IdentityRegistry {
         }
     }
 
-    // Reputasyon taşımak için
-    function migrateReputation(address oldAddress) external {
+    // Guardian ekleme
+    function addGuardian(address guardian) external {
+        identities[msg.sender].guardians[guardian] = true;
+        emit GuardianApproved(msg.sender, guardian);
+    }
+
+    // Time-lock ayarla (örneğin 24 saat)
+    function setTimeLock(uint256 delaySeconds) external {
+        identities[msg.sender].timeLockUntil = block.timestamp + delaySeconds;
+        emit TimeLockSet(msg.sender, identities[msg.sender].timeLockUntil);
+    }
+
+    // Reputasyon migration
+    function migrateReputation(address oldAddress) external timeLockPassed(msg.sender) {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
         uint256 oldReputation = identities[oldAddress].reputation;
@@ -53,8 +77,8 @@ contract IdentityRegistry {
         emit ReputationMigrated(oldAddress, newAccount, oldReputation);
     }
 
-    // ERC20 token migration
-    function migrateERC20(address token, address oldAddress, uint256 amount) external {
+    // ERC20 migration (guardian onaylı)
+    function migrateERC20(address token, address oldAddress, uint256 amount) external timeLockPassed(msg.sender) onlyGuardian(msg.sender) {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
 
@@ -62,8 +86,8 @@ contract IdentityRegistry {
         emit ERC20Migrated(token, oldAddress, newAccount, amount);
     }
 
-    // ERC721 / NFT migration
-    function migrateERC721(address token, address oldAddress, uint256 tokenId) external {
+    // ERC721 migration (guardian onaylı)
+    function migrateERC721(address token, address oldAddress, uint256 tokenId) external timeLockPassed(msg.sender) onlyGuardian(msg.sender) {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
 
