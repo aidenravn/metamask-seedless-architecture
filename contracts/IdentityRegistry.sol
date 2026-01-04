@@ -1,16 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+interface IERC20 {
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+}
+
+interface IERC721 {
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+}
+
 contract IdentityRegistry {
     struct Identity {
         address primaryAccount;          // Seedless smart account
         address[] linkedAddresses;       // Eski cüzdanlar
+        uint256 reputation;              // Reputasyon puanı
     }
 
     mapping(address => Identity) public identities;
     mapping(address => address) public addressToIdentity;
 
     event AddressLinked(address indexed oldAddress, address indexed newAccount);
+    event ReputationMigrated(address indexed oldAddress, address indexed newAccount, uint256 amount);
+    event ERC20Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 amount);
+    event ERC721Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 tokenId);
 
     // Link eski cüzdan ile yeni smart account
     function linkOldAddress(address oldAddress, bytes calldata signature) external {
@@ -26,6 +38,37 @@ contract IdentityRegistry {
 
             emit AddressLinked(oldAddress, msg.sender);
         }
+    }
+
+    // Reputasyon taşımak için
+    function migrateReputation(address oldAddress) external {
+        address newAccount = addressToIdentity[oldAddress];
+        require(newAccount == msg.sender, "Not authorized");
+        uint256 oldReputation = identities[oldAddress].reputation;
+        require(oldReputation > 0, "No reputation to migrate");
+
+        identities[oldAddress].reputation = 0;
+        identities[newAccount].reputation += oldReputation;
+
+        emit ReputationMigrated(oldAddress, newAccount, oldReputation);
+    }
+
+    // ERC20 token migration
+    function migrateERC20(address token, address oldAddress, uint256 amount) external {
+        address newAccount = addressToIdentity[oldAddress];
+        require(newAccount == msg.sender, "Not authorized");
+
+        IERC20(token).transferFrom(oldAddress, newAccount, amount);
+        emit ERC20Migrated(token, oldAddress, newAccount, amount);
+    }
+
+    // ERC721 / NFT migration
+    function migrateERC721(address token, address oldAddress, uint256 tokenId) external {
+        address newAccount = addressToIdentity[oldAddress];
+        require(newAccount == msg.sender, "Not authorized");
+
+        IERC721(token).safeTransferFrom(oldAddress, newAccount, tokenId);
+        emit ERC721Migrated(token, oldAddress, newAccount, tokenId);
     }
 
     function getLinkedAddresses(address account) external view returns(address[] memory) {
