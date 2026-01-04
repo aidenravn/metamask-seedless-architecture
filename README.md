@@ -114,5 +114,3 @@ MIT License © 2026 aidenravn
 
 ---
 
-
-Bunu yapayım mı?
