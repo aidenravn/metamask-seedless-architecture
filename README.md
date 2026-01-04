@@ -76,6 +76,18 @@ Event Logging	Auditability of every migration or claim
 
 ⸻
 
+⚠️ Potential Issues & Mitigation
+
+Issue	Mitigation
+MPC / Guardian complexity	Threshold-based MPC & Guardian (e.g., 2/3 approval), fallback guardian, automated health checks
+Reputation migration	Protocol-specific adapters, Merkle proof verification, transaction simulation before live migration
+User onboarding	Step-by-step interactive guides, visual guardian setup, recovery simulation
+Offline guardian	Redundant guardians (3-5), time-lock fallback, mobile/email alerts
+Off-chain reputation manipulation	On-chain Merkle roots, trusted oracle/attester, replay attack protection (nonce)
+
+
+⸻
+
 🔑 Features Recap
 	•	Seedless self-custody: no seed phrases
 	•	Human-first UX: easy recovery and migration
@@ -101,3 +113,6 @@ npm run dev
 MIT License © 2026 aidenravn
 
 ---
+
+
+Bunu yapayım mı?
