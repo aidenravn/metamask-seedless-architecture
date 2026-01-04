@@ -9,27 +9,37 @@ interface IERC721 {
     function safeTransferFrom(address from, address to, uint256 tokenId) external;
 }
 
+interface IStaking {
+    function unstake(uint256 tokenId, address to) external;
+}
+
 contract IdentityRegistry {
     struct Identity {
-        address primaryAccount;          // Seedless smart account
-        address[] linkedAddresses;       // Eski cüzdanlar
-        uint256 reputation;              // Reputasyon puanı
-        uint256 timeLockUntil;           // Migration / transfer için zaman kilidi
-        mapping(address => bool) guardians; // Guardian ağı
-        mapping(address => bool) mpcDevices; // MPC / Multi-Device approval
+        address primaryAccount;
+        address[] linkedAddresses;
+        uint256 reputation;
+        uint256 timeLockUntil;
+        mapping(address => bool) guardians;
+        mapping(address => bool) mpcDevices;
     }
 
     mapping(address => Identity) private identities;
     mapping(address => address) public addressToIdentity;
+
+    // Off-chain reputasyon için Merkle root
+    bytes32 public merkleRoot;
 
     // Events
     event AddressLinked(address indexed oldAddress, address indexed newAccount);
     event ReputationMigrated(address indexed oldAddress, address indexed newAccount, uint256 amount);
     event ERC20Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 amount);
     event ERC721Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 tokenId);
+    event StakedTokenMigrated(address indexed stakingContract, address indexed oldAddress, address indexed newAccount, uint256 tokenId);
+    event ReputationClaimed(address indexed account, uint256 amount);
     event GuardianApproved(address indexed account, address indexed guardian);
     event MPCApproved(address indexed account, address indexed device);
     event TimeLockSet(address indexed account, uint256 unlockTime);
+    event MerkleRootSet(bytes32 root);
 
     // Modifiers
     modifier onlyGuardian(address account) {
@@ -52,7 +62,7 @@ contract IdentityRegistry {
         bytes32 message = keccak256(abi.encodePacked("Link to ", msg.sender));
         require(recoverSigner(message, signature) == oldAddress, "Invalid signature");
 
-        if(addressToIdentity[oldAddress] == address(0)) {
+        if (addressToIdentity[oldAddress] == address(0)) {
             identities[msg.sender].primaryAccount = msg.sender;
             identities[msg.sender].linkedAddresses.push(oldAddress);
             addressToIdentity[oldAddress] = msg.sender;
@@ -79,8 +89,18 @@ contract IdentityRegistry {
         emit TimeLockSet(msg.sender, identities[msg.sender].timeLockUntil);
     }
 
+    // Merkle root ayarlama
+    function setMerkleRoot(bytes32 root) external {
+        merkleRoot = root;
+        emit MerkleRootSet(root);
+    }
+
     // Reputasyon migration
-    function migrateReputation(address oldAddress) external timeLockPassed(msg.sender) onlyMPC(msg.sender) {
+    function migrateReputation(address oldAddress)
+        external
+        timeLockPassed(msg.sender)
+        onlyMPC(msg.sender)
+    {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
 
@@ -93,12 +113,25 @@ contract IdentityRegistry {
         emit ReputationMigrated(oldAddress, newAccount, oldReputation);
     }
 
+    // Off-chain airdrop/testnet reputasyon claim
+    function claimReputation(uint256 amount, bytes32[] calldata proof)
+        external
+        timeLockPassed(msg.sender)
+        onlyMPC(msg.sender)
+    {
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
+        require(verifyMerkleProof(proof, leaf), "Invalid proof");
+
+        identities[msg.sender].reputation += amount;
+        emit ReputationClaimed(msg.sender, amount);
+    }
+
     // ERC20 migration
-    function migrateERC20(address token, address oldAddress, uint256 amount) 
-        external 
-        timeLockPassed(msg.sender) 
-        onlyGuardian(msg.sender) 
-        onlyMPC(msg.sender) 
+    function migrateERC20(address token, address oldAddress, uint256 amount)
+        external
+        timeLockPassed(msg.sender)
+        onlyGuardian(msg.sender)
+        onlyMPC(msg.sender)
     {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
@@ -107,12 +140,12 @@ contract IdentityRegistry {
         emit ERC20Migrated(token, oldAddress, newAccount, amount);
     }
 
-    // ERC721 / NFT migration
-    function migrateERC721(address token, address oldAddress, uint256 tokenId) 
-        external 
-        timeLockPassed(msg.sender) 
-        onlyGuardian(msg.sender) 
-        onlyMPC(msg.sender) 
+    // ERC721 migration
+    function migrateERC721(address token, address oldAddress, uint256 tokenId)
+        external
+        timeLockPassed(msg.sender)
+        onlyGuardian(msg.sender)
+        onlyMPC(msg.sender)
     {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
@@ -121,9 +154,34 @@ contract IdentityRegistry {
         emit ERC721Migrated(token, oldAddress, newAccount, tokenId);
     }
 
+    // Stake token migration
+    function migrateStakedToken(address stakingContract, uint256 tokenId)
+        external
+        timeLockPassed(msg.sender)
+        onlyGuardian(msg.sender)
+        onlyMPC(msg.sender)
+    {
+        IStaking(stakingContract).unstake(tokenId, msg.sender);
+        emit StakedTokenMigrated(stakingContract, msg.sender, msg.sender, tokenId);
+    }
+
     // Get linked addresses
     function getLinkedAddresses(address account) external view returns(address[] memory) {
         return identities[account].linkedAddresses;
+    }
+
+    // Merkle proof doğrulama
+    function verifyMerkleProof(bytes32[] calldata proof, bytes32 leaf) internal view returns(bool) {
+        bytes32 computedHash = leaf;
+        for (uint256 i = 0; i < proof.length; i++) {
+            bytes32 proofElement = proof[i];
+            if (computedHash <= proofElement) {
+                computedHash = keccak256(abi.encodePacked(computedHash, proofElement));
+            } else {
+                computedHash = keccak256(abi.encodePacked(proofElement, computedHash));
+            }
+        }
+        return computedHash == merkleRoot;
     }
 
     // Basit ECDSA recovery
