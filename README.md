@@ -1,19 +1,19 @@
+# 🌱 Seedless Wallet – Human-Friendly Self-Custody for Web3
 
-🌱 Seedless Wallet – Human-Friendly Self-Custody for Web3
+> Experimental project – not production-ready. Do not use with real funds. Always follow security best practices.
 
-Experimental project – not production-ready. Do not use with real funds. Always follow security best practices.
+---
 
-⸻
+## 🔑 Architecture & Security Flow
 
-🔑 Architecture & Security Flow
-
-      ┌─────────────────────┐
-      │  User Device (MPC)  │
-      │ - Device-bound key  │
-      │ - No seed phrase    │
-      └─────────┬──────────┘
-                │
-                ▼
+```text
+        ┌─────────────────────┐
+        │  User Device (MPC)  │
+        │ - Device-bound key  │
+        │ - No seed phrase    │
+        └─────────┬──────────┘
+                  │
+                  ▼
    ┌─────────────────────────────┐
    │ Seedless Smart Account       │
    │ (ERC-4337 Account Abstraction) │
@@ -22,43 +22,43 @@ Experimental project – not production-ready. Do not use with real funds. Alway
    └─────────┬───────────────────┘
              │
              ▼
-      ┌──────────────┐
-      │ Guardian /   │
-      │ MPC Network  │
-      │ - Social recovery          │
-      │ - Guardian veto            │
-      │ - MPC approval             │
-      └───────┬────────┘
-              │
+        ┌──────────────┐
+        │ Guardian /   │
+        │ MPC Network  │
+        │ - Social recovery          │
+        │ - Guardian veto            │
+        │ - MPC approval             │
+        └───────┬────────┘
+                │
    ┌──────────▼──────────┐
    │ Identity Registry    │
    │ - Link old wallets   │
    │ - Track reputations  │
    │ - Time-lock control  │
    └──────────┬──────────┘
-              │
-              ▼
-      ┌───────────────┐
-      │ Migration     │
-      │ Helper        │
-      │ - ERC20/721   │
-      │ - Staked      │
-      │   Assets      │
-      └───────┬────────┘
-              │
+                │
+                ▼
+        ┌───────────────┐
+        │ Migration     │
+        │ Helper        │
+        │ - ERC20/721   │
+        │ - Staked      │
+        │   Assets      │
+        └───────┬────────┘
+                │
    ┌──────────▼───────────┐
    │ Reputation Contract  │
    │ - Stake & Testnet    │
    │ - Off-chain Airdrops │
    │ - Merkle-proof claims│
    └──────────┬───────────┘
-              ▼
-      ┌───────────────┐
-      │ Safe Wallet   │
-      │ - Seedless    │
-      │ - Recovery-ready │
-      │ - Reputation-aware│
-      └───────────────┘
+                ▼
+        ┌───────────────┐
+        │ Safe Wallet   │
+        │ - Seedless    │
+        │ - Recovery-ready │
+        │ - Reputation-aware│
+        └───────────────┘
 
 
 ⸻
@@ -134,4 +134,3 @@ Verdict:
 	•	Strategically very valuable and technically feasible.
 	•	Recommended to deploy on mainnet only after rigorous testing and audit.
 
-⸻
