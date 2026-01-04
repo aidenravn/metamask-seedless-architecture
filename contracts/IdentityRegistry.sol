@@ -16,20 +16,29 @@ contract IdentityRegistry {
         uint256 reputation;              // Reputasyon puanı
         uint256 timeLockUntil;           // Migration / transfer için zaman kilidi
         mapping(address => bool) guardians; // Guardian ağı
+        mapping(address => bool) mpcDevices; // MPC / Multi-Device approval
     }
 
-    mapping(address => Identity) public identities;
+    mapping(address => Identity) private identities;
     mapping(address => address) public addressToIdentity;
 
+    // Events
     event AddressLinked(address indexed oldAddress, address indexed newAccount);
     event ReputationMigrated(address indexed oldAddress, address indexed newAccount, uint256 amount);
     event ERC20Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 amount);
     event ERC721Migrated(address indexed token, address indexed oldAddress, address indexed newAccount, uint256 tokenId);
     event GuardianApproved(address indexed account, address indexed guardian);
+    event MPCApproved(address indexed account, address indexed device);
     event TimeLockSet(address indexed account, uint256 unlockTime);
 
+    // Modifiers
     modifier onlyGuardian(address account) {
         require(identities[account].guardians[msg.sender], "Not a guardian");
+        _;
+    }
+
+    modifier onlyMPC(address account) {
+        require(identities[account].mpcDevices[msg.sender], "MPC approval missing");
         _;
     }
 
@@ -58,16 +67,23 @@ contract IdentityRegistry {
         emit GuardianApproved(msg.sender, guardian);
     }
 
-    // Time-lock ayarla (örneğin 24 saat)
+    // MPC cihaz ekleme
+    function addMPCDevice(address device) external {
+        identities[msg.sender].mpcDevices[device] = true;
+        emit MPCApproved(msg.sender, device);
+    }
+
+    // Time-lock ayarlama
     function setTimeLock(uint256 delaySeconds) external {
         identities[msg.sender].timeLockUntil = block.timestamp + delaySeconds;
         emit TimeLockSet(msg.sender, identities[msg.sender].timeLockUntil);
     }
 
     // Reputasyon migration
-    function migrateReputation(address oldAddress) external timeLockPassed(msg.sender) {
+    function migrateReputation(address oldAddress) external timeLockPassed(msg.sender) onlyMPC(msg.sender) {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
+
         uint256 oldReputation = identities[oldAddress].reputation;
         require(oldReputation > 0, "No reputation to migrate");
 
@@ -77,8 +93,13 @@ contract IdentityRegistry {
         emit ReputationMigrated(oldAddress, newAccount, oldReputation);
     }
 
-    // ERC20 migration (guardian onaylı)
-    function migrateERC20(address token, address oldAddress, uint256 amount) external timeLockPassed(msg.sender) onlyGuardian(msg.sender) {
+    // ERC20 migration
+    function migrateERC20(address token, address oldAddress, uint256 amount) 
+        external 
+        timeLockPassed(msg.sender) 
+        onlyGuardian(msg.sender) 
+        onlyMPC(msg.sender) 
+    {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
 
@@ -86,8 +107,13 @@ contract IdentityRegistry {
         emit ERC20Migrated(token, oldAddress, newAccount, amount);
     }
 
-    // ERC721 migration (guardian onaylı)
-    function migrateERC721(address token, address oldAddress, uint256 tokenId) external timeLockPassed(msg.sender) onlyGuardian(msg.sender) {
+    // ERC721 / NFT migration
+    function migrateERC721(address token, address oldAddress, uint256 tokenId) 
+        external 
+        timeLockPassed(msg.sender) 
+        onlyGuardian(msg.sender) 
+        onlyMPC(msg.sender) 
+    {
         address newAccount = addressToIdentity[oldAddress];
         require(newAccount == msg.sender, "Not authorized");
 
@@ -95,6 +121,7 @@ contract IdentityRegistry {
         emit ERC721Migrated(token, oldAddress, newAccount, tokenId);
     }
 
+    // Get linked addresses
     function getLinkedAddresses(address account) external view returns(address[] memory) {
         return identities[account].linkedAddresses;
     }
