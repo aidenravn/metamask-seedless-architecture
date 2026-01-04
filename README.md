@@ -1,3 +1,9 @@
+⚠️ Disclaimer
+
+Seedless Wallet is experimental (Alpha).
+Do NOT use real funds. Bugs or vulnerabilities may result in permanent loss of assets.
+You are solely responsible for your security setup. By using this software, you confirm you understand the risks of experimental blockchain tools.
+
 # 🌱 Seedless Wallet – Human-Friendly Self-Custody for Web3
 
 > Experimental project – not production-ready. Do not use with real funds. Always follow security best practices.
