@@ -1,13 +1,12 @@
 
-# 🌱 Seedless Wallet – Human-Friendly Self-Custody for Web3
+🌱 Seedless Wallet – Human-Friendly Self-Custody for Web3
 
-> Experimental project – not production-ready. Do not use with real funds. Always follow security best practices.
+Experimental project – not production-ready. Do not use with real funds. Always follow security best practices.
 
----
+⸻
 
-## 🔑 Architecture & Security Flow
+🔑 Architecture & Security Flow
 
-```text
       ┌─────────────────────┐
       │  User Device (MPC)  │
       │ - Device-bound key  │
@@ -67,7 +66,7 @@
 🛡️ Security Layers
 
 Layer	Purpose
-MPC / Multi-Device	Transaction requires device approval; prevents single device compromise
+MPC / Multi-Device	Transactions require device approval; prevents single device compromise
 Guardian Network	Social recovery, veto capability, extra trust layer
 Time-lock	Delays high-risk operations to prevent immediate attacks
 Transaction Simulation	Test operations before committing on-chain
@@ -112,5 +111,27 @@ npm run dev
 
 MIT License © 2026 aidenravn
 
----
+⸻
 
+📝 Core Dev Review / Notes
+
+Strategic Evaluation:
+	•	The Seedless Wallet concept is critical and innovative for Web3 UX.
+	•	Reputation migration and stake/testnet transfer prevent user attrition.
+	•	MPC + Guardian + Time-lock + Simulation provides multi-layer security.
+
+Technical Notes:
+	•	MPC and Guardian scenarios should be thoroughly tested on testnets.
+	•	Reputation and Migration Helper modules require dry-run and simulation before live deployment.
+	•	Security audits must cover smart contracts, off-chain systems, and MPC/guardian logic.
+
+Risk & Mitigation:
+	•	Offline/missing guardians → redundant guardians + time-lock fallback
+	•	Reputation migration compatibility → protocol adapters + Merkle proofs
+	•	User onboarding → step-by-step guide and recovery simulation
+
+Verdict:
+	•	Strategically very valuable and technically feasible.
+	•	Recommended to deploy on mainnet only after rigorous testing and audit.
+
+⸻
