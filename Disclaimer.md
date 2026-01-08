@@ -1,46 +1,45 @@
+⚠️ Seedless Wallet – Experimental Software Warning
 
-⚖️ Legal Disclaimer & Security Warnings
+Important: Seedless Wallet is an experimental (Alpha) project. Use at your own risk.
 
-⚠️ IMPORTANT: EXPERIMENTAL SOFTWARE
-
-Seedless Wallet is an experimental (Alpha) project. The codebase—including smart contracts, MPC (Multi-Party Computation) logic, and migration tools—has NOT undergone a professional third-party security audit. By using this software, you explicitly acknowledge and agree to the following terms:
-
-⸻
-
-1. Risk of Total Loss
-
-Seedless Wallet is a research project. Bugs, logic errors, or vulnerabilities in smart contracts, MPC infrastructure, or migration tools may result in the permanent loss of all digital assets stored in the wallet.
-DO NOT USE REAL FUNDS. Use only supported Testnets (e.g., Sepolia, Base Goerli).
+By using this software, you acknowledge that you understand the risks and accept full responsibility.
 
 ⸻
 
-2. No Liability
-
-The developers, contributors, and maintainers of Seedless Wallet are not responsible for any financial losses, data breaches, or loss of wallet access.
-The software is provided “AS IS”, without warranty of any kind, express or implied.
-
-⸻
-
-3. Non-Custodial Nature
-
-Seedless Wallet is non-custodial. You are solely responsible for your security setup:
-	•	Guardian Management: Losing access to both your device shard and all guardians may make your funds unrecoverable.
-	•	Shard Security: MPC reduces single-point-of-failure risks, but cloud shards depend on third-party security (e.g., Google, iCloud, AWS).
+1️⃣ Total Loss Risk
+	•	Bugs, logic errors, or vulnerabilities in smart contracts, MPC, or migration tools may result in permanent loss of all assets.
+	•	DO NOT USE REAL FUNDS. Only use Testnets (e.g., Sepolia, Base Goerli).
 
 ⸻
 
-4. Technical Limitations
-	•	Transaction Simulation: While transactions are simulated to detect risks, 100% accuracy cannot be guaranteed. Sophisticated phishing attacks or protocol exploits may bypass simulation filters.
-	•	Migration Helper: Automated migration of staked assets or complex DeFi positions is experimental. Always verify the output of a migration dry-run before execution.
+2️⃣ No Liability
+	•	Developers, contributors, and maintainers are not responsible for any losses or damage.
+	•	Software is provided “AS IS” without warranty of any kind.
 
 ⸻
 
-5. Open Source & Contributions
+3️⃣ Non-Custodial Responsibility
+	•	You are fully responsible for your wallet security:
+	•	Guardian Management: Losing both your device shard and all guardians may make funds unrecoverable.
+	•	Shard Security: MPC reduces single-point-of-failure risks, but cloud shards rely on third-party security (Google, iCloud, AWS).
 
-Seedless Wallet is licensed under the MIT License. Contributions are welcome, but maintainers do not assume responsibility for third-party code integrated into the project.
+⸻
+
+4️⃣ Technical Limitations
+	•	Transaction Simulation: Detects risks but cannot guarantee 100% accuracy. Phishing or exploits may bypass checks.
+	•	Migration Helper: Moving staked assets or complex DeFi positions is experimental. Always verify dry-run results before executing.
 
 ⸻
 
-By proceeding, you confirm that you are a technically sophisticated user who understands the inherent risks of blockchain technology, experimental smart contracts, and advanced cryptographic infrastructure.
+5️⃣ Open Source & Contributions
+	•	Licensed under MIT. Contributions are welcome.
+	•	Maintainers are not responsible for third-party code integrated into the project.
 
 ⸻
+
+⚡ User Acknowledgement
+
+By proceeding, you confirm that you are a technically sophisticated user who understands the inherent risks of:
+	•	Blockchain technology
+	•	Experimental smart contracts
+	•	MPC & advanced cryptographic infrastructure
