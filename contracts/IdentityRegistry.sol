@@ -29,6 +29,12 @@ contract IdentityRegistry {
     // Off-chain reputasyon için Merkle root
     bytes32 public merkleRoot;
 
+    // Cross-chain DID support
+    mapping(bytes32 => address) public crossChainIdentity;
+
+    // Threshold tabanlı guardian approvals
+    mapping(address => uint256) public guardianApprovalThreshold;
+
     // Events
     event AddressLinked(address indexed oldAddress, address indexed newAccount);
     event ReputationMigrated(address indexed oldAddress, address indexed newAccount, uint256 amount);
@@ -40,8 +46,8 @@ contract IdentityRegistry {
     event MPCApproved(address indexed account, address indexed device);
     event TimeLockSet(address indexed account, uint256 unlockTime);
     event MerkleRootSet(bytes32 root);
+    event GuardianThresholdUpdated(address indexed account, uint256 newThreshold);
 
-    // Modifiers
     modifier onlyGuardian(address account) {
         require(identities[account].guardians[msg.sender], "Not a guardian");
         _;
@@ -89,10 +95,24 @@ contract IdentityRegistry {
         emit TimeLockSet(msg.sender, identities[msg.sender].timeLockUntil);
     }
 
+    // Guardian threshold
+    function setGuardianThreshold(uint256 threshold) external {
+        require(threshold > 0, "Threshold must be > 0");
+        require(threshold <= getActiveGuardians(msg.sender), "Threshold > active guardians");
+        guardianApprovalThreshold[msg.sender] = threshold;
+        emit GuardianThresholdUpdated(msg.sender, threshold);
+    }
+
     // Merkle root ayarlama
     function setMerkleRoot(bytes32 root) external {
         merkleRoot = root;
         emit MerkleRootSet(root);
+    }
+
+    // Cross-chain identity linking
+    function linkCrossChainIdentity(bytes32 chainId, address account) external {
+        crossChainIdentity[chainId] = account;
+        // Future: emit event
     }
 
     // Reputasyon migration
@@ -111,19 +131,6 @@ contract IdentityRegistry {
         identities[newAccount].reputation += oldReputation;
 
         emit ReputationMigrated(oldAddress, newAccount, oldReputation);
-    }
-
-    // Off-chain airdrop/testnet reputasyon claim
-    function claimReputation(uint256 amount, bytes32[] calldata proof)
-        external
-        timeLockPassed(msg.sender)
-        onlyMPC(msg.sender)
-    {
-        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
-        require(verifyMerkleProof(proof, leaf), "Invalid proof");
-
-        identities[msg.sender].reputation += amount;
-        emit ReputationClaimed(msg.sender, amount);
     }
 
     // ERC20 migration
@@ -165,23 +172,14 @@ contract IdentityRegistry {
         emit StakedTokenMigrated(stakingContract, msg.sender, msg.sender, tokenId);
     }
 
-    // Get linked addresses
-    function getLinkedAddresses(address account) external view returns(address[] memory) {
-        return identities[account].linkedAddresses;
-    }
-
-    // Merkle proof doğrulama
-    function verifyMerkleProof(bytes32[] calldata proof, bytes32 leaf) internal view returns(bool) {
-        bytes32 computedHash = leaf;
-        for (uint256 i = 0; i < proof.length; i++) {
-            bytes32 proofElement = proof[i];
-            if (computedHash <= proofElement) {
-                computedHash = keccak256(abi.encodePacked(computedHash, proofElement));
-            } else {
-                computedHash = keccak256(abi.encodePacked(proofElement, computedHash));
+    // Get active guardians
+    function getActiveGuardians(address account) public view returns(uint256 count) {
+        Identity storage id = identities[account];
+        for (uint i = 0; i < id.linkedAddresses.length; i++) {
+            if (id.guardians[id.linkedAddresses[i]]) {
+                count++;
             }
         }
-        return computedHash == merkleRoot;
     }
 
     // Basit ECDSA recovery
